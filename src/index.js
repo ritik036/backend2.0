@@ -6,9 +6,16 @@ import { DB_NAME } from "./constants.js ";
 
 // Second Approach :- write DB code seperately, then export it then import it and execute it. 
 import connectDB from "./db/index.js";
+import { app } from "./app.js";
 dotenv.config();
 
-connectDB()
+connectDB().then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+        console.log("server is running at port 8000")
+    })
+}).catch((err) => {
+    console.log(err, "mongodb connection failed")
+})
 
 
 
