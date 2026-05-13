@@ -23,6 +23,7 @@ const registerUser = asyncHandler(async function (req, res) {
     // return response.
 
     const { fullname, username, email, password } = req.body;
+    console.log("request body", req.body);
 
     console.log("email", email);
     if (fullname === "") throw new ApiError(400, "fullname is absent");
@@ -36,17 +37,28 @@ const registerUser = asyncHandler(async function (req, res) {
         throw new ApiError(400, "All fields are required");
     }
 
-    const existedUser = User.findOne({ $or: [{ username }, { email }] });
+    const existedUser = await User.findOne({ $or: [{ username }, { email }] });
 
     if (existedUser) {
         throw new ApiError(409, "User Already Exists");
     }
 
+    console.log(req.files?.avatar[0]?.path);
+    console.log("printing req.files", req.files);
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if (
+        req.files &&
+        req.files.coverImage &&
+        Array.isArray(req.files.coverImage) &&
+        req.files.coverImage.length > 0
+    ) {
+        coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if (!avatarLocalPath) {
-        throw new ApiError(400, "avatar is required");
+        throw new ApiError(400, "avatar local path is missing");
     }
     // cover image is not that important so it is not checked for its existence.
 
@@ -54,8 +66,16 @@ const registerUser = asyncHandler(async function (req, res) {
     const avatar = await uploadOnCloundinary(avatarLocalPath);
     const coverImage = await uploadOnCloundinary(coverImageLocalPath);
 
+    console.log("avatar details", avatar);
+
     // Check whether the avatar file is uploaded or not.
-    if (!avatar) throw new ApiError(400, "Avatar is required");
+    if (!avatar) {
+        throw new ApiError(400, "Avatar is required");
+    }
+
+    if(!email.includes("@gmail.com")) {
+        throw new ApiError(400, "enter proper email format")
+    }
 
     const user = await User.create({
         fullname,
@@ -69,6 +89,7 @@ const registerUser = asyncHandler(async function (req, res) {
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     );
+    console.log(createdUser);
 
     if (!createdUser) {
         throw new ApiError(500, "could not register user, an error occured");
