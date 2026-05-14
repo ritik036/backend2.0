@@ -129,7 +129,7 @@ const loginUser = asyncHandler(async function (req, res) {
     // send these token in form of secure cookies.
     // send response of successfull login.
     const { email, username, password } = req.body;
-    if (!username || !email) {
+    if (!(username || email)) {
         throw new ApiError(400, "username or email is required");
     }
     const user = await User.findOne({ $or: [{ email }, { username }] });
