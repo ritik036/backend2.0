@@ -440,8 +440,7 @@ const getUserChannelProfile = asyncHandler(async function (req, res) {
         );
 });
 
-
-// it is hard to understand, i still dont gets it. 
+// it is hard to understand, i still dont gets it.
 const getWatchHistory = asyncHandler(async function (req, res) {
     const user = await User.aggregate([
         {
@@ -484,6 +483,15 @@ const getWatchHistory = asyncHandler(async function (req, res) {
             },
         },
     ]);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                user[0].watchHistory,
+                "watch history fetched successfully"
+            )
+        );
 });
 
 export {
